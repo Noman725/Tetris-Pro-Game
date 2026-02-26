@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>TETRIS PRO</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<div class="scanlines"></div>
+<div id="toast" class="toast"></div>
+<div id="combo-pop" class="combo-pop"></div>
+
+<div class="app" id="app">
+
+  <!-- ════ LEFT PANEL ════ -->
+  <div class="panel panel-left">
+    <div class="logo">
+      <span style="color:#ff5577">T</span><span style="color:#ffaa33">E</span><span
+        style="color:#ffdd22">T</span><span style="color:#44e077">R</span><span
+        style="color:#33aaff">I</span><span style="color:#cc77ff">S</span>
+      <span class="logo-pro">PRO</span>
+    </div>
+
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="btn-classic" onclick="switchMode('classic')">CLASSIC</button>
+      <button class="mode-btn" id="btn-puzzle" onclick="switchMode('puzzle')">PUZZLE</button>
+    </div>
+
+    <div class="card"><div class="lbl">SCORE</div><div class="val" id="score">0</div></div>
+    <div class="card"><div class="lbl">BEST</div><div class="val gold" id="best">0</div></div>
+    <div class="card"><div class="lbl">COINS 🪙</div><div class="val coin" id="coins">0</div></div>
+    <div class="card two-col">
+      <div><div class="lbl">LEVEL</div><div class="val" id="level">1</div></div>
+      <div><div class="lbl">LINES</div><div class="val" id="lines">0</div></div>
+    </div>
+    <div class="card">
+      <div class="lbl">COMBO</div>
+      <div class="val cyan" id="combo">×0</div>
+    </div>
+    <div class="card">
+      <div class="lbl">NEXT LEVEL</div>
+      <div class="prog-wrap"><div class="prog-bar" id="prog"></div></div>
+    </div>
+
+    <div class="card controls-card">
+      <div class="lbl">CONTROLS</div>
+      <div class="ctrl"><kbd>← →</kbd> Move</div>
+      <div class="ctrl"><kbd>↑</kbd> Rotate</div>
+      <div class="ctrl"><kbd>↓</kbd> Drop</div>
+      <div class="ctrl"><kbd>SPC</kbd> Hard Drop</div>
+      <div class="ctrl"><kbd>C</kbd> Hold &nbsp;<kbd>P</kbd> Pause</div>
+      <div class="ctrl"><kbd>H</kbd> Hammer <kbd>B</kbd> Bomb</div>
+      <div class="ctrl"><kbd>R</kbd> Rainbow <kbd>M</kbd> Mystery</div>
+    </div>
+  </div>
+
+  <!-- ════ BOARD COLUMN ════ -->
+  <div class="board-col">
+    <div id="hammer-banner" class="hammer-banner hidden">🔨 CLICK A BLOCK TO BREAK IT</div>
+    <div class="board-wrap" id="board-wrap">
+      <canvas id="board" width="300" height="600"></canvas>
+    </div>
+    <div id="puzzle-bar" class="puzzle-bar hidden">
+      <span>MOVES: <strong id="puz-moves">0</strong>/<strong id="puz-limit">0</strong></span>
+      <span>GOAL: <strong id="puz-goal">0</strong> lines</span>
+      <span id="puz-status"></span>
+    </div>
+
+    <!-- Mobile touch controls -->
+    <div class="mobile-controls">
+      <div class="mob-row">
+        <button class="mob-btn" id="mob-hold">HOLD</button>
+        <button class="mob-btn wide" id="mob-up">⟳ ROTATE</button>
+        <button class="mob-btn" id="mob-pause">⏸</button>
+      </div>
+      <div class="mob-row">
+        <button class="mob-btn big" id="mob-left">◀</button>
+        <button class="mob-btn big" id="mob-down">▼</button>
+        <button class="mob-btn big" id="mob-right">▶</button>
+      </div>
+      <div class="mob-row">
+        <button class="mob-btn full" id="mob-drop">▼▼ HARD DROP</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ RIGHT PANEL ════ -->
+  <div class="panel panel-right">
+    <div class="card"><div class="lbl">NEXT</div><canvas id="c-next" width="120" height="88"></canvas></div>
+    <div class="card"><div class="lbl">HOLD</div><canvas id="c-hold" width="120" height="88"></canvas></div>
+
+    <div class="card powerups-card">
+      <div class="lbl">POWER-UPS</div>
+      <div class="pu-grid">
+        <div class="pu-item" id="pu-hammer" onclick="activateHammer()" title="[H] Break 1 block">
+          <div class="pu-icon">🔨</div>
+          <div class="pu-count" id="cnt-hammer">0</div>
+          <div class="pu-label">HAMMER</div>
+          <div class="pu-cd" id="cd-hammer"></div>
+        </div>
+        <div class="pu-item" id="pu-bomb" onclick="activateBomb()" title="[B] 3×3 blast">
+          <div class="pu-icon">💣</div>
+          <div class="pu-count" id="cnt-bomb">0</div>
+          <div class="pu-label">BOMB</div>
+          <div class="pu-cd" id="cd-bomb"></div>
+        </div>
+        <div class="pu-item" id="pu-rainbow" onclick="activateRainbow()" title="[R] Wildcard">
+          <div class="pu-icon">🌈</div>
+          <div class="pu-count" id="cnt-rainbow">0</div>
+          <div class="pu-label">RAINBOW</div>
+          <div class="pu-cd" id="cd-rainbow"></div>
+        </div>
+        <div class="pu-item" id="pu-slow" onclick="activateSlow()" title="Slow motion">
+          <div class="pu-icon">🐢</div>
+          <div class="pu-count" id="cnt-slow">0</div>
+          <div class="pu-label">SLOW</div>
+          <div class="pu-cd" id="cd-slow"></div>
+        </div>
+        <div class="pu-item" id="pu-life" title="Extra Life">
+          <div class="pu-icon">❤️</div>
+          <div class="pu-count" id="cnt-life">0</div>
+          <div class="pu-label">LIFE</div>
+        </div>
+        <div class="pu-item" id="pu-mystery" onclick="openMystery()" title="[M] Random power">
+          <div class="pu-icon">🎁</div>
+          <div class="pu-count" id="cnt-mystery">0</div>
+          <div class="pu-label">MYSTERY</div>
+          <div class="pu-cd" id="cd-mystery"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shop-card">
+      <div class="lbl">SHOP 🏪</div>
+      <div class="shop-item" onclick="buyItem('hammer')"><span>🔨 Hammer</span><span class="shop-price">50🪙</span></div>
+      <div class="shop-item" onclick="buyItem('bomb')"><span>💣 Bomb</span><span class="shop-price">80🪙</span></div>
+      <div class="shop-item" onclick="buyItem('rainbow')"><span>🌈 Rainbow</span><span class="shop-price">60🪙</span></div>
+      <div class="shop-item" onclick="buyItem('slow')"><span>🐢 Slow</span><span class="shop-price">40🪙</span></div>
+      <div class="shop-item" onclick="buyItem('life')"><span>❤️ Extra Life</span><span class="shop-price">120🪙</span></div>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- Overlay positioned by JS over canvas -->
+<div id="overlay" class="overlay-box hidden">
+  <div class="ov-title" id="ov-title">TETRIS PRO</div>
+  <div class="ov-sub" id="ov-sub">Ultimate Block Stacking</div>
+  <div id="ov-stats" class="ov-stats hidden"></div>
+  <div id="ov-extralife" class="ov-extralife hidden">
+    <div class="el-msg">Board full! Use an Extra Life?</div>
+    <div class="el-btns">
+      <button class="el-yes" id="btn-use-life">❤️ USE LIFE</button>
+      <button class="el-no" id="btn-skip-life">Skip</button>
+    </div>
+  </div>
+  <button id="btn-start">▶ START GAME</button>
+</div>
+
+<script src="game.js"></script>
+</body>
+</html>
